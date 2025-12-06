@@ -1,30 +1,37 @@
-# WarrantyFlow – AI-Inspired Supplier Warranty & Returns Agent
+# WarrantyFlow – Supplier Warranty & Returns Agent
 
-WarrantyFlow is a prototype supplier issue triage tool. It takes in supplier warranty / returns issues, classifies the case, and recommends an action (auto-approve RMA, escalate to finance, request more info) with reasoning.
+WarrantyFlow is a prototype agent that triages supplier warranty and returns issues.  
+It takes a structured issue intake (supplier, order, SKU, quantity, description), looks up mock order & warranty data, applies policy docs, and returns a decision + action.
+
+## What it does
+
+- **Intake form** (Next.js + TypeScript)
+  - Supplier ID, Order ID, SKU, quantity, free-text description
+- **LLM-based classification**
+  - Maps issues into types like `damaged`, `duplicate_charge`, `warranty_expired`, `wrong_item`, etc.
+- **Mock tools**
+  - `getOrder(orderId)` and `getWarrantyTerms(sku)` against in-memory data
+- **Policy-aware reasoning**
+  - Loads local markdown policies (returns & warranty) and retrieves relevant sections into the prompt
+- **Decision + action**
+  - Returns a structured `IssueDecision`:
+    - `outcome` (e.g. `auto_approve_rma`, `escalate_to_human`)
+    - `reasoning`
+    - `requiresFollowup` + `followupQuestions`
+    - `action` (e.g. `create_rma`, `flag_finance_dispute`, `request_photos`)
+  - Executes a “virtual tool” for the action and returns an `actionResult`
+- **Session history**
+  - In-page table of recent issues for lightweight ops visibility
 
 ## Tech stack
 
 - Next.js (App Router) + TypeScript
-- API routes for backend logic (`/api/issues`)
+- API routes as the agent backend
 - Tailwind CSS for UI
+- OpenAI Responses API
 
-## Current functionality (v0)
+## Ideas for next steps
 
-- Supplier-facing intake form:
-  - Supplier ID, Order ID, SKU, quantity, free-text description
-- Backend “agent” endpoint:
-  - Applies simple rules based on the issue description
-  - Returns a structured decision:
-    - `outcome` (e.g. `auto_approve_rma`, `escalate_to_human`)
-    - `reasoning`
-    - follow-up questions, when needed
-- UI renders the agent’s decision in a clean, two-panel layout.
-
-## Roadmap
-
-- Replace heuristic rules with an LLM-powered agent (OpenAI)
-- Add mock order + warranty data and let the agent call "tools" to:
-  - Fetch order info
-  - Check warranty eligibility
-- Add policy documents + vector search (RAG) so the agent cites policies
-- Add a dashboard of historical issues and decisions
+- Persist issues to a real store (Supabase/Postgres)
+- Add a confidence score and thresholds for auto-approve vs. escalate
+- Add more tools (notify buyer, update internal ticketing, etc.)
