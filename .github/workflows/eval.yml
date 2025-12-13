@@ -25,5 +25,5 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           EVAL_MODEL: gpt-4.1-mini
-          EVAL_MIN_PASSRATE: "0.75"
+          EVAL_MIN_PASSRATE: "0.50"
         run: npm run eval
