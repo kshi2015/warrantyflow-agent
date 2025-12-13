@@ -1,0 +1,397 @@
+{
+  "summary": {
+    "runId": "2025-12-13T01-49-10-640Z",
+    "total": 6,
+    "passRate": 0,
+    "hardFails": 0,
+    "avgLatencyMs": 2974
+  },
+  "rows": [
+    {
+      "id": "damage-auto-approve",
+      "input": {
+        "supplierId": "S-123",
+        "orderId": "ORD-456",
+        "sku": "SKU-789",
+        "quantity": 2,
+        "description": "2 units arrived cracked and damaged in the box. Can we get an RMA?"
+      },
+      "expected": {
+        "allowedOutcomes": [
+          "auto_approve_rma",
+          "conditional_approve"
+        ],
+        "mustAsk": [],
+        "mustNot": [
+          "reject"
+        ],
+        "allowedActions": [
+          "create_rma",
+          "request_photos",
+          "no_action"
+        ]
+      },
+      "model": "gpt-4.1-mini",
+      "output": {
+        "outcome": "RMA should be created",
+        "reasoning": "The customer reported that 2 units arrived cracked and damaged, which qualifies as a defect eligible for return or replacement.",
+        "requiresFollowup": false,
+        "followupQuestions": null,
+        "action": "create_rma"
+      },
+      "rawText": "{\n  \"outcome\": \"RMA should be created\",\n  \"reasoning\": \"The customer reported that 2 units arrived cracked and damaged, which qualifies as a defect eligible for return or replacement.\",\n  \"requiresFollowup\": false,\n  \"followupQuestions\": null,\n  \"action\": \"create_rma\"\n}",
+      "score": {
+        "id": "damage-auto-approve",
+        "passed": false,
+        "checks": {
+          "outcomeOk": false,
+          "actionOk": true,
+          "mustAskOk": true,
+          "mustNotOk": true
+        },
+        "mustAskMissing": [],
+        "mustNotHits": []
+      },
+      "metrics": {
+        "latencyMs": 2912,
+        "usage": {
+          "input_tokens": 147,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens": 69,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 216
+        }
+      }
+    },
+    {
+      "id": "finance-duplicate-charge",
+      "input": {
+        "supplierId": "S-9",
+        "orderId": "ORD-999",
+        "sku": "SKU-999",
+        "quantity": 1,
+        "description": "We were charged twice for the same invoice. Please fix the duplicate charge."
+      },
+      "expected": {
+        "allowedOutcomes": [
+          "escalate_to_human",
+          "request_more_info"
+        ],
+        "mustAsk": [
+          "invoice",
+          "charge"
+        ],
+        "mustNot": [
+          "auto_approve_rma"
+        ],
+        "allowedActions": [
+          "flag_finance_dispute",
+          "no_action"
+        ]
+      },
+      "model": "gpt-4.1-mini",
+      "output": {
+        "outcome": "supplier dispute",
+        "reasoning": "The customer claims a double charge on the same invoice, which is a financial issue rather than a product defect or warranty claim. This requires resolution with finance or accounting, not an RMA.",
+        "requiresFollowup": true,
+        "followupQuestions": [
+          "Can you provide the invoice number and a copy of the billing statement showing the duplicate charge?",
+          "Have you contacted finance or billing department about this issue previously?"
+        ],
+        "action": "flag_finance_dispute"
+      },
+      "rawText": "{\n  \"outcome\": \"supplier dispute\",\n  \"reasoning\": \"The customer claims a double charge on the same invoice, which is a financial issue rather than a product defect or warranty claim. This requires resolution with finance or accounting, not an RMA.\",\n  \"requiresFollowup\": true,\n  \"followupQuestions\": [\n    \"Can you provide the invoice number and a copy of the billing statement showing the duplicate charge?\",\n    \"Have you contacted finance or billing department about this issue previously?\"\n  ],\n  \"action\": \"flag_finance_dispute\"\n}",
+      "score": {
+        "id": "finance-duplicate-charge",
+        "passed": false,
+        "checks": {
+          "outcomeOk": false,
+          "actionOk": true,
+          "mustAskOk": true,
+          "mustNotOk": true
+        },
+        "mustAskMissing": [],
+        "mustNotHits": []
+      },
+      "metrics": {
+        "latencyMs": 4112,
+        "usage": {
+          "input_tokens": 145,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens": 118,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 263
+        }
+      }
+    },
+    {
+      "id": "wrong-item-notify",
+      "input": {
+        "supplierId": "S-1",
+        "orderId": "ORD-456",
+        "sku": "SKU-789",
+        "quantity": 1,
+        "description": "Received wrong item. SKU on box doesn't match what we ordered."
+      },
+      "expected": {
+        "allowedOutcomes": [
+          "conditional_approve",
+          "auto_approve_rma",
+          "request_more_info"
+        ],
+        "mustAsk": [
+          "correct sku"
+        ],
+        "mustNot": [
+          "reject"
+        ],
+        "allowedActions": [
+          "notify_supplier",
+          "request_photos",
+          "no_action"
+        ]
+      },
+      "model": "gpt-4.1-mini",
+      "output": {
+        "outcome": "Valid warranty claim for wrong item received",
+        "reasoning": "The customer reports receiving an item where the SKU on the box doesn't match the SKU ordered, indicating a fulfillment error by the supplier.",
+        "requiresFollowup": true,
+        "followupQuestions": [
+          "Can you please provide a photo of the item and the box showing the SKU and packaging?",
+          "Did you receive the correct item physically but with wrong SKU labeling, or was the entire item incorrect?"
+        ],
+        "action": "request_photos"
+      },
+      "rawText": "{\n  \"outcome\": \"Valid warranty claim for wrong item received\",\n  \"reasoning\": \"The customer reports receiving an item where the SKU on the box doesn't match the SKU ordered, indicating a fulfillment error by the supplier.\",\n  \"requiresFollowup\": true,\n  \"followupQuestions\": [\n    \"Can you please provide a photo of the item and the box showing the SKU and packaging?\",\n    \"Did you receive the correct item physically but with wrong SKU labeling, or was the entire item incorrect?\"\n  ],\n  \"action\": \"request_photos\"\n}",
+      "score": {
+        "id": "wrong-item-notify",
+        "passed": false,
+        "checks": {
+          "outcomeOk": false,
+          "actionOk": true,
+          "mustAskOk": false,
+          "mustNotOk": true
+        },
+        "mustAskMissing": [
+          "correct sku"
+        ],
+        "mustNotHits": []
+      },
+      "metrics": {
+        "latencyMs": 3592,
+        "usage": {
+          "input_tokens": 143,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens": 117,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 260
+        }
+      }
+    },
+    {
+      "id": "vague-request-more-info",
+      "input": {
+        "supplierId": "S-123",
+        "orderId": "ORD-456",
+        "sku": "SKU-789",
+        "quantity": 1,
+        "description": "It doesn't work."
+      },
+      "expected": {
+        "allowedOutcomes": [
+          "request_more_info"
+        ],
+        "mustAsk": [
+          "what happens",
+          "photos"
+        ],
+        "mustNot": [
+          "auto_approve_rma"
+        ],
+        "allowedActions": [
+          "request_photos",
+          "no_action"
+        ]
+      },
+      "model": "gpt-4.1-mini",
+      "output": {
+        "outcome": "insufficient_information",
+        "reasoning": "The description 'It doesn't work.' is too vague to determine the nature of the issue or to proceed with any warranty action. More details about the problem are needed.",
+        "requiresFollowup": true,
+        "followupQuestions": [
+          "Can you please provide a detailed description of the problem?",
+          "When did the issue first occur?",
+          "Have you tried any troubleshooting steps?",
+          "Can you provide photos or videos showing the issue?"
+        ],
+        "action": "request_photos"
+      },
+      "rawText": "{\n  \"outcome\": \"insufficient_information\",\n  \"reasoning\": \"The description 'It doesn't work.' is too vague to determine the nature of the issue or to proceed with any warranty action. More details about the problem are needed.\",\n  \"requiresFollowup\": true,\n  \"followupQuestions\": [\n    \"Can you please provide a detailed description of the problem?\",\n    \"When did the issue first occur?\",\n    \"Have you tried any troubleshooting steps?\",\n    \"Can you provide photos or videos showing the issue?\"\n  ],\n  \"action\": \"request_photos\"\n}",
+      "score": {
+        "id": "vague-request-more-info",
+        "passed": false,
+        "checks": {
+          "outcomeOk": false,
+          "actionOk": true,
+          "mustAskOk": false,
+          "mustNotOk": true
+        },
+        "mustAskMissing": [
+          "what happens"
+        ],
+        "mustNotHits": []
+      },
+      "metrics": {
+        "latencyMs": 3334,
+        "usage": {
+          "input_tokens": 134,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens": 121,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 255
+        }
+      }
+    },
+    {
+      "id": "warranty-expired",
+      "input": {
+        "supplierId": "S-123",
+        "orderId": "ORD-456",
+        "sku": "SKU-789",
+        "quantity": 1,
+        "description": "Stopped working after ~400 days. Standard warranty is 365 days."
+      },
+      "expected": {
+        "allowedOutcomes": [
+          "reject",
+          "conditional_approve",
+          "escalate_to_human"
+        ],
+        "mustAsk": [],
+        "mustNot": [
+          "auto_approve_rma"
+        ],
+        "allowedActions": [
+          "no_action",
+          "request_photos"
+        ]
+      },
+      "model": "gpt-4.1-mini",
+      "output": {
+        "outcome": "deny_warranty_claim",
+        "reasoning": "The product stopped working after approximately 400 days, which exceeds the standard warranty period of 365 days. Therefore, the claim falls outside the warranty coverage.",
+        "requiresFollowup": false,
+        "followupQuestions": null,
+        "action": "no_action"
+      },
+      "rawText": "{\n  \"outcome\": \"deny_warranty_claim\",\n  \"reasoning\": \"The product stopped working after approximately 400 days, which exceeds the standard warranty period of 365 days. Therefore, the claim falls outside the warranty coverage.\",\n  \"requiresFollowup\": false,\n  \"followupQuestions\": null,\n  \"action\": \"no_action\"\n}",
+      "score": {
+        "id": "warranty-expired",
+        "passed": false,
+        "checks": {
+          "outcomeOk": false,
+          "actionOk": true,
+          "mustAskOk": true,
+          "mustNotOk": true
+        },
+        "mustAskMissing": [],
+        "mustNotHits": []
+      },
+      "metrics": {
+        "latencyMs": 2050,
+        "usage": {
+          "input_tokens": 144,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens": 75,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 219
+        }
+      }
+    },
+    {
+      "id": "damage-old-order-escalate",
+      "input": {
+        "supplierId": "S-123",
+        "orderId": "ORD-555",
+        "sku": "SKU-9",
+        "quantity": 1,
+        "description": "Item arrived damaged but order is 14 months old. No photos yet."
+      },
+      "expected": {
+        "allowedOutcomes": [
+          "escalate_to_human",
+          "request_more_info"
+        ],
+        "mustAsk": [
+          "photos",
+          "damage"
+        ],
+        "mustNot": [
+          "auto_approve_rma"
+        ],
+        "allowedActions": [
+          "request_photos",
+          "no_action"
+        ]
+      },
+      "model": "gpt-4.1-mini",
+      "output": {
+        "outcome": "Rejected due to warranty expiration",
+        "reasoning": "The order is 14 months old, which typically exceeds the standard warranty period (usually 12 months). Additionally, there are no photos provided to assess the damage.",
+        "requiresFollowup": true,
+        "followupQuestions": [
+          "Could you please provide photos of the damaged item?",
+          "Can you confirm the exact purchase date and the warranty period for this item?"
+        ],
+        "action": "request_photos"
+      },
+      "rawText": "{\n  \"outcome\": \"Rejected due to warranty expiration\",\n  \"reasoning\": \"The order is 14 months old, which typically exceeds the standard warranty period (usually 12 months). Additionally, there are no photos provided to assess the damage.\",\n  \"requiresFollowup\": true,\n  \"followupQuestions\": [\n    \"Could you please provide photos of the damaged item?\",\n    \"Can you confirm the exact purchase date and the warranty period for this item?\"\n  ],\n  \"action\": \"request_photos\"\n}",
+      "score": {
+        "id": "damage-old-order-escalate",
+        "passed": false,
+        "checks": {
+          "outcomeOk": false,
+          "actionOk": true,
+          "mustAskOk": true,
+          "mustNotOk": true
+        },
+        "mustAskMissing": [],
+        "mustNotHits": []
+      },
+      "metrics": {
+        "latencyMs": 1841,
+        "usage": {
+          "input_tokens": 145,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens": 109,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 254
+        }
+      }
+    }
+  ]
+}

@@ -6,9 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "eval": "node --import tsx eval/run_eval.ts"
   },
   "dependencies": {
+    "dotenv": "^17.2.3",
     "next": "16.0.7",
     "openai": "^6.10.0",
     "react": "19.2.0",
@@ -22,6 +24,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
