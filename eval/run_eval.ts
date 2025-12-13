@@ -1,4 +1,4 @@
-// 1️⃣ Load env FIRST (before anything else)
+// 1️⃣ Load environment FIRST
 import dotenv from "dotenv";
 import path from "node:path";
 
@@ -6,12 +6,25 @@ dotenv.config({
   path: path.resolve(process.cwd(), ".env.local"),
 });
 
-// 2️⃣ Now safe to import everything else
+// 2️⃣ Imports
 import fs from "node:fs";
 import OpenAI from "openai";
 import { scoreOne, type EvalCase } from "./score";
 
-// 3️⃣ Create OpenAI client AFTER env is loaded
+// 3️⃣ Pricing config
+type ModelPricing = {
+  input: number;
+  output: number;
+};
+
+const PRICING: Record<string, ModelPricing> = {
+  "gpt-4.1-mini": {
+    input: 0.15 / 1_000_000,
+    output: 0.60 / 1_000_000,
+  },
+};
+
+// 4️⃣ OpenAI client (after env load)
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -65,8 +78,7 @@ Return ONLY valid JSON with this exact shape:
 
   const rawText = response.output_text || "";
   const parsed =
-    safeJsonParse(rawText) ??
-    {
+    safeJsonParse(rawText) ?? {
       outcome: null,
       action: null,
       reasoning: rawText,
@@ -85,6 +97,10 @@ Return ONLY valid JSON with this exact shape:
 /* -------------------- main runner -------------------- */
 
 async function main() {
+  let totalLatencyMs = 0;
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
+
   const casesPath = path.join(process.cwd(), "eval", "cases.jsonl");
   const cases = readJsonl(casesPath);
 
@@ -120,19 +136,58 @@ async function main() {
     if (!scored.passed) {
       console.log("   ", scored);
     }
+
+    totalLatencyMs += latencyMs;
+
+    if (usage) {
+      totalInputTokens += usage.input_tokens || 0;
+      totalOutputTokens += usage.output_tokens || 0;
+    }
   }
 
-  const passRate = rows.filter((r) => r.score.passed).length / rows.length;
+  // ---- cost calculation (once per run) ----
+  const modelName = process.env.EVAL_MODEL || "gpt-4.1-mini";
+  const pricing = PRICING[modelName];
+
+  if (!pricing) {
+    console.warn(`No pricing configured for model: ${modelName}`);
+  }
+
+  const inputCost = pricing
+    ? totalInputTokens * pricing.input
+    : 0;
+
+  const outputCost = pricing
+    ? totalOutputTokens * pricing.output
+    : 0;
+
+  const totalCost = inputCost + outputCost;
+
+  const passRate =
+    rows.filter((r) => r.score.passed).length / rows.length;
 
   const summary = {
     runId,
     total: rows.length,
     passRate,
     hardFails,
-    avgLatencyMs: Math.round(
-      rows.reduce((a, r) => a + r.metrics.latencyMs, 0) / rows.length
-    ),
+    avgLatencyMs: Math.round(totalLatencyMs / rows.length),
+    tokens: {
+      input: totalInputTokens,
+      output: totalOutputTokens,
+      total: totalInputTokens + totalOutputTokens,
+    },
+    costUsd: {
+      input: Number(inputCost.toFixed(6)),
+      output: Number(outputCost.toFixed(6)),
+      total: Number(totalCost.toFixed(6)),
+      perCase: Number((totalCost / rows.length).toFixed(6)),
+    },
   };
+
+  console.log(
+    `Cost: $${summary.costUsd.total} total ($${summary.costUsd.perCase}/case)`
+  );
 
   fs.writeFileSync(
     outPath,
