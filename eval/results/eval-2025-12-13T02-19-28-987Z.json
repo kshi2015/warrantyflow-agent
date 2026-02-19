@@ -1,0 +1,398 @@
+{
+  "summary": {
+    "runId": "2025-12-13T02-19-28-987Z",
+    "total": 6,
+    "passRate": 0,
+    "hardFails": 0,
+    "avgLatencyMs": 1913,
+    "tokens": {
+      "input": 912,
+      "output": 457,
+      "total": 1369
+    },
+    "costUsd": {
+      "input": 0.000137,
+      "output": 0.000274,
+      "total": 0.000411,
+      "perCase": 0.000068
+    }
+  },
+  "rows": [
+    {
+      "id": "damage-auto-approve",
+      "input": {
+        "supplierId": "S-123",
+        "orderId": "ORD-456",
+        "sku": "SKU-789",
+        "quantity": 2,
+        "description": "2 units arrived cracked and damaged in the box. Can we get an RMA?"
+      },
+      "expected": {
+        "allowedOutcomes": [
+          "auto_approve_rma",
+          "conditional_approve"
+        ],
+        "mustAsk": [],
+        "mustNot": [
+          "reject"
+        ],
+        "allowedActions": [
+          "create_rma",
+          "request_photos",
+          "no_action"
+        ]
+      },
+      "output": {
+        "outcome": "approved",
+        "reasoning": "The customer reported that 2 units arrived cracked and damaged, which is a valid reason for an RMA.",
+        "requiresFollowup": false,
+        "followupQuestions": null,
+        "action": "create_rma"
+      },
+      "rawText": "{\n  \"outcome\": \"approved\",\n  \"reasoning\": \"The customer reported that 2 units arrived cracked and damaged, which is a valid reason for an RMA.\",\n  \"requiresFollowup\": false,\n  \"followupQuestions\": null,\n  \"action\": \"create_rma\"\n}",
+      "score": {
+        "id": "damage-auto-approve",
+        "passed": false,
+        "checks": {
+          "outcomeOk": false,
+          "actionOk": true,
+          "mustAskOk": true,
+          "mustNotOk": true
+        },
+        "mustAskMissing": [],
+        "mustNotHits": []
+      },
+      "metrics": {
+        "latencyMs": 1774,
+        "usage": {
+          "input_tokens": 156,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens": 64,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 220
+        }
+      }
+    },
+    {
+      "id": "finance-duplicate-charge",
+      "input": {
+        "supplierId": "S-9",
+        "orderId": "ORD-999",
+        "sku": "SKU-999",
+        "quantity": 1,
+        "description": "We were charged twice for the same invoice. Please fix the duplicate charge."
+      },
+      "expected": {
+        "allowedOutcomes": [
+          "escalate_to_human",
+          "request_more_info"
+        ],
+        "mustAsk": [
+          "invoice",
+          "charge"
+        ],
+        "mustNot": [
+          "auto_approve_rma"
+        ],
+        "allowedActions": [
+          "flag_finance_dispute",
+          "no_action"
+        ]
+      },
+      "output": {
+        "outcome": "invalid_claim",
+        "reasoning": "The claim describes a billing issue (duplicate charge) which is a finance dispute, not a product defect or warranty claim.",
+        "requiresFollowup": false,
+        "followupQuestions": null,
+        "action": "flag_finance_dispute"
+      },
+      "rawText": "{\n  \"outcome\": \"invalid_claim\",\n  \"reasoning\": \"The claim describes a billing issue (duplicate charge) which is a finance dispute, not a product defect or warranty claim.\",\n  \"requiresFollowup\": false,\n  \"followupQuestions\": null,\n  \"action\": \"flag_finance_dispute\"\n}",
+      "score": {
+        "id": "finance-duplicate-charge",
+        "passed": false,
+        "checks": {
+          "outcomeOk": false,
+          "actionOk": true,
+          "mustAskOk": false,
+          "mustNotOk": true
+        },
+        "mustAskMissing": [
+          "invoice"
+        ],
+        "mustNotHits": []
+      },
+      "metrics": {
+        "latencyMs": 1308,
+        "usage": {
+          "input_tokens": 154,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens": 69,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 223
+        }
+      }
+    },
+    {
+      "id": "wrong-item-notify",
+      "input": {
+        "supplierId": "S-1",
+        "orderId": "ORD-456",
+        "sku": "SKU-789",
+        "quantity": 1,
+        "description": "Received wrong item. SKU on box doesn't match what we ordered."
+      },
+      "expected": {
+        "allowedOutcomes": [
+          "conditional_approve",
+          "auto_approve_rma",
+          "request_more_info"
+        ],
+        "mustAsk": [
+          "correct sku"
+        ],
+        "mustNot": [
+          "reject"
+        ],
+        "allowedActions": [
+          "notify_supplier",
+          "request_photos",
+          "no_action"
+        ]
+      },
+      "output": {
+        "outcome": "approve",
+        "reasoning": "Customer reports receiving the wrong item with a mismatched SKU, which qualifies for warranty claim approval.",
+        "requiresFollowup": false,
+        "followupQuestions": null,
+        "action": "create_rma"
+      },
+      "rawText": "{\n  \"outcome\": \"approve\",\n  \"reasoning\": \"Customer reports receiving the wrong item with a mismatched SKU, which qualifies for warranty claim approval.\",\n  \"requiresFollowup\": false,\n  \"followupQuestions\": null,\n  \"action\": \"create_rma\"\n}",
+      "score": {
+        "id": "wrong-item-notify",
+        "passed": false,
+        "checks": {
+          "outcomeOk": false,
+          "actionOk": false,
+          "mustAskOk": false,
+          "mustNotOk": true
+        },
+        "mustAskMissing": [
+          "correct sku"
+        ],
+        "mustNotHits": []
+      },
+      "metrics": {
+        "latencyMs": 2050,
+        "usage": {
+          "input_tokens": 152,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens": 61,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 213
+        }
+      }
+    },
+    {
+      "id": "vague-request-more-info",
+      "input": {
+        "supplierId": "S-123",
+        "orderId": "ORD-456",
+        "sku": "SKU-789",
+        "quantity": 1,
+        "description": "It doesn't work."
+      },
+      "expected": {
+        "allowedOutcomes": [
+          "request_more_info"
+        ],
+        "mustAsk": [
+          "what happens",
+          "photos"
+        ],
+        "mustNot": [
+          "auto_approve_rma"
+        ],
+        "allowedActions": [
+          "request_photos",
+          "no_action"
+        ]
+      },
+      "output": {
+        "outcome": "invalid_claim",
+        "reasoning": "The description 'It doesn't work.' is too vague and does not provide sufficient detail about the issue with the product.",
+        "requiresFollowup": true,
+        "followupQuestions": [
+          "Can you please provide more details about the issue with the product?",
+          "When did you notice the problem?",
+          "Are there any error messages or specific symptoms?"
+        ],
+        "action": "no_action"
+      },
+      "rawText": "{\n  \"outcome\": \"invalid_claim\",\n  \"reasoning\": \"The description 'It doesn't work.' is too vague and does not provide sufficient detail about the issue with the product.\",\n  \"requiresFollowup\": true,\n  \"followupQuestions\": [\n    \"Can you please provide more details about the issue with the product?\",\n    \"When did you notice the problem?\",\n    \"Are there any error messages or specific symptoms?\"\n  ],\n  \"action\": \"no_action\"\n}",
+      "score": {
+        "id": "vague-request-more-info",
+        "passed": false,
+        "checks": {
+          "outcomeOk": false,
+          "actionOk": true,
+          "mustAskOk": false,
+          "mustNotOk": true
+        },
+        "mustAskMissing": [
+          "what happens",
+          "photos"
+        ],
+        "mustNotHits": []
+      },
+      "metrics": {
+        "latencyMs": 2968,
+        "usage": {
+          "input_tokens": 143,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens": 101,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 244
+        }
+      }
+    },
+    {
+      "id": "warranty-expired",
+      "input": {
+        "supplierId": "S-123",
+        "orderId": "ORD-456",
+        "sku": "SKU-789",
+        "quantity": 1,
+        "description": "Stopped working after ~400 days. Standard warranty is 365 days."
+      },
+      "expected": {
+        "allowedOutcomes": [
+          "reject",
+          "conditional_approve",
+          "escalate_to_human"
+        ],
+        "mustAsk": [],
+        "mustNot": [
+          "auto_approve_rma"
+        ],
+        "allowedActions": [
+          "no_action",
+          "request_photos"
+        ]
+      },
+      "output": {
+        "outcome": "denied",
+        "reasoning": "The product stopped working after approximately 400 days, which is beyond the standard 365-day warranty period.",
+        "requiresFollowup": false,
+        "followupQuestions": null,
+        "action": "no_action"
+      },
+      "rawText": "{\n  \"outcome\": \"denied\",\n  \"reasoning\": \"The product stopped working after approximately 400 days, which is beyond the standard 365-day warranty period.\",\n  \"requiresFollowup\": false,\n  \"followupQuestions\": null,\n  \"action\": \"no_action\"\n}",
+      "score": {
+        "id": "warranty-expired",
+        "passed": false,
+        "checks": {
+          "outcomeOk": false,
+          "actionOk": true,
+          "mustAskOk": true,
+          "mustNotOk": true
+        },
+        "mustAskMissing": [],
+        "mustNotHits": []
+      },
+      "metrics": {
+        "latencyMs": 1638,
+        "usage": {
+          "input_tokens": 153,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens": 63,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 216
+        }
+      }
+    },
+    {
+      "id": "damage-old-order-escalate",
+      "input": {
+        "supplierId": "S-123",
+        "orderId": "ORD-555",
+        "sku": "SKU-9",
+        "quantity": 1,
+        "description": "Item arrived damaged but order is 14 months old. No photos yet."
+      },
+      "expected": {
+        "allowedOutcomes": [
+          "escalate_to_human",
+          "request_more_info"
+        ],
+        "mustAsk": [
+          "photos",
+          "damage"
+        ],
+        "mustNot": [
+          "auto_approve_rma"
+        ],
+        "allowedActions": [
+          "request_photos",
+          "no_action"
+        ]
+      },
+      "output": {
+        "outcome": "denied",
+        "reasoning": "The order is 14 months old, which likely exceeds the warranty period for most products. Additionally, no photos have been provided to verify the damage.",
+        "requiresFollowup": true,
+        "followupQuestions": [
+          "Can you provide photos of the damaged item?",
+          "Do you have proof of the purchase date or warranty terms?"
+        ],
+        "action": "request_photos"
+      },
+      "rawText": "{\n  \"outcome\": \"denied\",\n  \"reasoning\": \"The order is 14 months old, which likely exceeds the warranty period for most products. Additionally, no photos have been provided to verify the damage.\",\n  \"requiresFollowup\": true,\n  \"followupQuestions\": [\n    \"Can you provide photos of the damaged item?\",\n    \"Do you have proof of the purchase date or warranty terms?\"\n  ],\n  \"action\": \"request_photos\"\n}",
+      "score": {
+        "id": "damage-old-order-escalate",
+        "passed": false,
+        "checks": {
+          "outcomeOk": false,
+          "actionOk": true,
+          "mustAskOk": true,
+          "mustNotOk": true
+        },
+        "mustAskMissing": [],
+        "mustNotHits": []
+      },
+      "metrics": {
+        "latencyMs": 1739,
+        "usage": {
+          "input_tokens": 154,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens": 99,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 253
+        }
+      }
+    }
+  ]
+}
