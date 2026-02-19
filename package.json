@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "eval": "node --import tsx eval/run_eval.ts"
+    "eval": "node --import tsx eval/run_eval.ts",
+    "eval:baseline": "node --import tsx eval/run_eval.ts --save-baseline"
   },
   "dependencies": {
     "dotenv": "^17.2.3",

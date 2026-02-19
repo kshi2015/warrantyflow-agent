@@ -10,6 +10,8 @@ dotenv.config({
 import fs from "node:fs";
 import OpenAI from "openai";
 import { scoreOne, type EvalCase } from "./score";
+import { generateReport } from "./report";
+import { saveBaseline, loadBaseline, compareToBaseline, type BaselineData } from "./baseline";
 
 // 3️⃣ Pricing config
 type ModelPricing = {
@@ -52,16 +54,32 @@ function safeJsonParse(text: string) {
 
 async function callAgent(input: any) {
   const systemPrompt = `
-You are WarrantyFlow evaluator mode.
+You are WarrantyFlow, an AI agent that triages supplier warranty and returns issues.
 
-Return ONLY valid JSON with this exact shape:
+Analyze the warranty/returns issue and return ONLY valid JSON with this exact shape:
 {
   "outcome": string,
   "reasoning": string,
   "requiresFollowup": boolean,
   "followupQuestions": string[] | null,
-  "action": "create_rma" | "flag_finance_dispute" | "request_photos" | "notify_supplier" | "no_action"
+  "action": string
 }
+
+**IMPORTANT - Use EXACTLY these outcome values:**
+- "auto_approve_rma" - clear damage/defect within warranty period
+- "conditional_approve" - approve with conditions (e.g., pending photos)
+- "reject" - claim denied (out of warranty, policy violation)
+- "escalate_to_human" - complex/edge case requiring human judgment
+- "request_more_info" - insufficient information to decide
+
+**IMPORTANT - Use EXACTLY these action values:**
+- "create_rma" - create return merchandise authorization
+- "flag_finance_dispute" - billing/invoice issue
+- "request_photos" - need visual evidence
+- "notify_supplier" - inform supplier of issue
+- "no_action" - no immediate action needed
+
+When information is vague or incomplete, set requiresFollowup=true and provide specific followupQuestions.
 `;
 
   const t0 = Date.now();
@@ -189,14 +207,44 @@ async function main() {
     `Cost: $${summary.costUsd.total} total ($${summary.costUsd.perCase}/case)`
   );
 
+  const resultData = { summary, rows };
+
   fs.writeFileSync(
     outPath,
-    JSON.stringify({ summary, rows }, null, 2),
+    JSON.stringify(resultData, null, 2),
     "utf8"
   );
 
   console.log("\nSummary:", summary);
   console.log("Wrote:", outPath);
+
+  // Generate HTML report
+  generateReport(resultData, outPath);
+
+  // Baseline comparison
+  const baselineDir = path.join(process.cwd(), "eval");
+  const shouldSaveBaseline = process.argv.includes("--save-baseline");
+
+  const currentBaseline: BaselineData = {
+    runId,
+    passRate,
+    avgLatencyMs: summary.avgLatencyMs,
+    costPerCase: summary.costUsd.perCase,
+    categoryBreakdown: {},
+    checkStats: {
+      outcomeOk: rows.filter((r) => r.score.checks.outcomeOk).length,
+      actionOk: rows.filter((r) => r.score.checks.actionOk).length,
+      mustAskOk: rows.filter((r) => r.score.checks.mustAskOk).length,
+      mustNotOk: rows.filter((r) => r.score.checks.mustNotOk).length,
+    },
+  };
+
+  if (shouldSaveBaseline) {
+    saveBaseline(resultData, baselineDir);
+  } else {
+    const baseline = loadBaseline(baselineDir);
+    compareToBaseline(currentBaseline, baseline);
+  }
 
   const minPassRate = Number(process.env.EVAL_MIN_PASSRATE || "0.75");
   if (hardFails > 0) process.exit(2);
